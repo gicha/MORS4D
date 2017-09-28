@@ -1,0 +1,5 @@
+#JSGF V1.0;
+
+grammar directions;
+
+public <directions> = right|left|next|back|blablabla;
