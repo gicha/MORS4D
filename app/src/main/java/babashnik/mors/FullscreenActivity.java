@@ -25,6 +25,12 @@ import edu.cmu.pocketsphinx.RecognitionListener;
 import edu.cmu.pocketsphinx.SpeechRecognizer;
 import edu.cmu.pocketsphinx.SpeechRecognizerSetup;
 import eu.davidea.flipview.FlipView;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class FullscreenActivity extends Activity implements RecognitionListener {
 
@@ -33,12 +39,13 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
     private static final String DIRECTIONS_SEARCH = "directions";
 
     /* Keyword we are looking for to activate menu */
-    private static final String KEYPHRASE = "system";
+    private static final String KEYPHRASE = "babashnik";
 
     /* Used to handle permission request */
     private static final int SLIDES_COUNT = 5;
     FlipView fv;
     TextView console;
+    ImageView babashnik;
     int curSlide = 0;
     private SpeechRecognizer recognizer;
 
@@ -55,6 +62,7 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
             runRecognizerSetup();
         }
         console = findViewById(R.id.console);
+        babashnik = findViewById(R.id.babashnik);
         fv = findViewById(R.id.flipper);
         initImages();
     }
@@ -89,9 +97,29 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
                     curSlide++;
                 }
                 break;
-            case "blablabla":
-                console.setText("AND WAT?");
-            case "system":
+            case "share moment":
+                //////////////////////////////////////////////////////
+                File file = new File("/storage/emulated/0/Download/Corrections 6.jpg");
+
+                RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+
+                MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
+                Api api = App.Companion.getApi();
+                if (api == null)
+                    return;
+                api.shareMoment(body).enqueue(new Callback<Item>() {
+                    @Override
+                    public void onResponse(Call<Item> call, Response<Item> response) {
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<Item> call, Throwable t) {
+
+                    }
+                });
+                break;
+            case KEYPHRASE:
                 return;
         }
         new AsyncTask<Void, Void, Void>() {
@@ -169,7 +197,8 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
         if (hypothesis == null)
             return;
         String text = hypothesis.getHypstr();
-        console.setText(text);
+        if (!text.equals("babashnik"))
+            console.setText(text);
         System.out.println(">>>>>>>>>>>>>>>>   " + text);
         if (text.contains(KEYPHRASE)) {
             switchSearch(DIRECTIONS_SEARCH);
@@ -185,7 +214,8 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
         if (hypothesis == null)
             return;
         String text = hypothesis.getHypstr();
-        console.setText(text);
+        if (!text.equals("babashnik"))
+            console.setText(text);
         System.out.println("<<<<<<<<<   " + text);
         parseResponse(text);
     }
@@ -203,10 +233,13 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
     private void switchSearch(String searchName) {
         recognizer.stop();
 
-        if (searchName.equals(KWS_SEARCH))
+        if (searchName.equals(KWS_SEARCH)) {
             recognizer.startListening(searchName);
-        else
+            babashnik.setImageDrawable(getResources().getDrawable(R.drawable.first, null));
+        } else {
             recognizer.startListening(searchName, 10000);
+            babashnik.setImageDrawable(getResources().getDrawable(R.drawable.second, null));
+        }
 
     }
 

@@ -1,4 +1,4 @@
--lowerf 180
+-lowerf 130
 -upperf 6800
 -nfilt 25
 -transform dct
