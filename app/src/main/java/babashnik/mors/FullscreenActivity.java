@@ -7,11 +7,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,12 +26,6 @@ import edu.cmu.pocketsphinx.RecognitionListener;
 import edu.cmu.pocketsphinx.SpeechRecognizer;
 import edu.cmu.pocketsphinx.SpeechRecognizerSetup;
 import eu.davidea.flipview.FlipView;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class FullscreenActivity extends Activity implements RecognitionListener {
 
@@ -44,9 +39,11 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
     /* Used to handle permission request */
     private static final int SLIDES_COUNT = 5;
     FlipView fv;
+    ImageView fv_back;
     TextView console;
     ImageView babashnik;
     int curSlide = 0;
+    Animation anim_ltc, anim_rtc, anim_ctl, anim_ctr;
     private SpeechRecognizer recognizer;
 
     @Override
@@ -64,7 +61,16 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
         console = findViewById(R.id.console);
         babashnik = findViewById(R.id.babashnik);
         fv = findViewById(R.id.flipper);
+        fv_back = findViewById(R.id.flipper_back);
         initImages();
+        loadAnim();
+    }
+
+    private void loadAnim() {
+        anim_ltc = AnimationUtils.loadAnimation(this, R.anim.translate_ltc);
+        anim_rtc = AnimationUtils.loadAnimation(this, R.anim.translate_rtc);
+        anim_ctl = AnimationUtils.loadAnimation(this, R.anim.translate_ctl);
+        anim_ctr = AnimationUtils.loadAnimation(this, R.anim.translate_ctr);
     }
 
     private void initImages() {
@@ -75,49 +81,34 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
             ImageView iv = v.findViewById(R.id.slide_image);
 
             iv.setImageDrawable(getResources().getDrawable(imgs[i], null));
-            Log.e("MORS", i + "");
             fv.addView(v);
         }
 
     }
 
     private void parseResponse(String text) {
+        int imgs_back[] = {R.drawable.bi1, R.drawable.bi2, R.drawable.bi3, R.drawable.bi4, R.drawable.bi5};
+
         switch (text) {
             case "back":
             case "left":
                 if (curSlide > 0) {
+                    fv.setInAnimation(anim_ltc);
+                    fv.setOutAnimation(anim_ctr);
                     fv.showPrevious();
                     curSlide--;
+                    fv_back.setImageResource(imgs_back[curSlide]);
                 }
                 break;
             case "next":
             case "right":
                 if (curSlide < SLIDES_COUNT) {
+                    fv.setOutAnimation(anim_ctl);
+                    fv.setInAnimation(anim_rtc);
                     fv.showNext();
                     curSlide++;
+                    fv_back.setImageResource(imgs_back[curSlide]);
                 }
-                break;
-            case "share moment":
-                //////////////////////////////////////////////////////
-                File file = new File("/storage/emulated/0/Download/Corrections 6.jpg");
-
-                RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-
-                MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
-                Api api = App.Companion.getApi();
-                if (api == null)
-                    return;
-                api.shareMoment(body).enqueue(new Callback<Item>() {
-                    @Override
-                    public void onResponse(Call<Item> call, Response<Item> response) {
-
-                    }
-
-                    @Override
-                    public void onFailure(Call<Item> call, Throwable t) {
-
-                    }
-                });
                 break;
             case KEYPHRASE:
                 return;
@@ -197,12 +188,13 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
         if (hypothesis == null)
             return;
         String text = hypothesis.getHypstr();
-        if (!text.equals("babashnik"))
+        if (!text.contains("babashnik")) {
             console.setText(text);
+            switchSearch(KWS_SEARCH);
+        }
         System.out.println(">>>>>>>>>>>>>>>>   " + text);
         if (text.contains(KEYPHRASE)) {
             switchSearch(DIRECTIONS_SEARCH);
-            return;
         }
     }
 
@@ -237,7 +229,7 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
             recognizer.startListening(searchName);
             babashnik.setImageDrawable(getResources().getDrawable(R.drawable.first, null));
         } else {
-            recognizer.startListening(searchName, 10000);
+            recognizer.startListening(searchName, 5000);
             babashnik.setImageDrawable(getResources().getDrawable(R.drawable.second, null));
         }
 
@@ -267,4 +259,5 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
     public void onTimeout() {
         switchSearch(KWS_SEARCH);
     }
+
 }

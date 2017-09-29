@@ -13,10 +13,15 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/console"
             android:clickable="false"
-            android:inAnimation="@anim/translate_animation_in"
-            android:outAnimation="@anim/translate_animation_out"
             app:animateDesignLayoutOnly="true" />
 
+    <ImageView
+        android:id="@+id/flipper_back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/console"
+        android:clickable="false"
+        android:src="@drawable/bi1" />
 
     <TextView
         android:id="@+id/console"

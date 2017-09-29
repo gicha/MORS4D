@@ -2,4 +2,4 @@
 
 grammar directions;
 
-public <directions> = (right|left|next|back)|(share moment);
+public <directions> = (right|left|next|back);
