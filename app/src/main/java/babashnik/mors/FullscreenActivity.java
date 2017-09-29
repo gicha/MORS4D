@@ -3,11 +3,11 @@ package babashnik.mors;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -56,24 +56,21 @@ public class FullscreenActivity extends Activity implements RecognitionListener 
         }
         console = findViewById(R.id.console);
         fv = findViewById(R.id.flipper);
-        //initImages();
+        initImages();
     }
 
     private void initImages() {
-        Assets assets;
-        try {
-            assets = new Assets(FullscreenActivity.this);
-            String path = assets.getExternalDir().getPath();
-            path = path.substring(0, path.length() - 5);
-            for (int i = 0; i < SLIDES_COUNT; i++) {
-                LayoutInflater li = getLayoutInflater();
-                View v = li.inflate(R.layout.slide, fv, false);
-                ImageView iv = v.findViewById(R.id.slide_image);
-                iv.setImageDrawable(Drawable.createFromPath(path + "/images/image-" + i + ".jpg"));
-                fv.addView(v);
-            }
-        } catch (IOException ignored) {
+        int imgs[] = {R.drawable.i1, R.drawable.i2, R.drawable.i3, R.drawable.i4, R.drawable.i5};
+        for (int i = 0; i < SLIDES_COUNT; i++) {
+            LayoutInflater li = getLayoutInflater();
+            View v = li.inflate(R.layout.slide, fv, false);
+            ImageView iv = v.findViewById(R.id.slide_image);
+
+            iv.setImageDrawable(getResources().getDrawable(imgs[i], null));
+            Log.e("MORS", i + "");
+            fv.addView(v);
         }
+
     }
 
     private void parseResponse(String text) {
